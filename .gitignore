@@ -1,0 +1,5 @@
+**/*/.vagrant
+.idea
+**/*/packer_cache
+hw.1.kernel/vagrant_2.2.6_x86_64.deb
+hw.1.kernel/test/centos-7.7.1908-kernel-5-x86_64-Minimal.box
