@@ -1,22 +1,18 @@
+#!/bin/bash
+
 yum install nfs-utils -y
-for action in {start,enable}; do
-  echo 'performing action $action'
-  systemctl $action firewalld.service
-done
 
-mkdir -p /mnt/nfsfileshare
-grep '192.168.51.5:/var/nfsfileshare' /etc/fstab >/dev/null
-if [ $? -ne 0 ]; then
-  echo 'mounting nfsfileshare'
-  echo "192.168.51.5:/var/nfsfileshare/ /mnt/nfsfileshare nfs rw,sync,hard,intr 0 0" >> /etc/fstab
-  mount -a
-else
-  echo 'share is already mounted'
-fi
+mkdir -p /mnt/share
+chown -R vagrant:vagrant /mnt/share/
 
-echo 'Can I write?' > /mnt/nfsfileshare/test
-if [ $? -ne 0 ]; then
-  echo 'I cant write!!!'
-  exit 1
-fi
-  echo 'The share seems to be working'
+echo "192.168.51.5:/mnt/share /mnt/share nfs noauto,x-systemd.automount,proto=udp,nfsvers=3 0 0" >> /etc/fstab
+
+systemctl enable rpcbind firewalld
+systemctl start rpcbind firewalld
+
+firewall-cmd --permanent --zone=public --add-service=nfs3
+firewall-cmd --permanent --zone=public --add-service=mountd
+firewall-cmd --permanent --zone=public --add-service=rpc-bind
+firewall-cmd --reload
+
+shutdown -r now

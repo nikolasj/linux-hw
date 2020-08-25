@@ -1,14 +1,20 @@
+#!/bin/bash
+
 yum install nfs-utils -y
-for action in {start,enable}; do
-  echo 'performing action $action'
-  systemctl $action nfs-server.service
-  systemctl $action firewalld.service
-done
 
-mkdir -p /var/nfsfileshare
-chown -R nfsnobody:nfsnobody /var/nfsfileshare
-echo "/var/nfsfileshare 192.168.51.0/24(rw,sync,all_squash,no_subtree_check)" > /etc/exports
-exportfs -a
+mkdir -p /mnt/share
+chown -R vagrant:vagrant /mnt/share
+chmod  555 /mnt/share
+mkdir -p /mnt/share/upload
+chown -R vagrant:vagrant /mnt/share/upload/
+chmod  777 /mnt/share/upload/
 
-firewall-cmd --permanent --zone public --add-service nfs
+echo "mnt/share    192.168.51.10(rw,nohide,sync,root_squash)" >> /etc/exports
+
+systemctl enable rpcbind nfs-server firewalld
+systemctl start rpcbind nfs-server firewalld
+
+firewall-cmd --permanent --zone=public --add-service=nfs3
+firewall-cmd --permanent --zone=public --add-service=mountd
+firewall-cmd --permanent --zone=public --add-service=rpc-bind
 firewall-cmd --reload
