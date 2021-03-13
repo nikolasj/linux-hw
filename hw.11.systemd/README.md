@@ -22,11 +22,9 @@ sudo systemctl start spawn-fcgi
 ```
 3. 
 ```
-# созаем httpd@.service, httpd@1.service, httpd@2.service в /usr/lib/systemd/system
-# создаем в /etc/httpd/conf/ файлы httpd@1.conf, httpd@2.conf
+Создадим конфиг для инстанса и запишем в него опции: nano /etc/sysconfig/httpd-1
 
-sudo yum install -y policycoreutils-python
-sudo semanage port -a -t http_port_t -p tcp 7777
-sudo semanage port -a -t http_port_t -p tcp 8888
+OPTIONS="-f /etc/httpd/conf/httpd-1.conf" запускаем systemctl start httpd@1.service 
+
 
 ```
