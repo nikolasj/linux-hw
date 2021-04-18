@@ -1,0 +1,41 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+diskdir = './secondDisk.vdi'
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+  config.vm.define "server" do |server|
+    server.vm.network "private_network", ip: "192.168.11.10"
+    server.vm.synced_folder ".", "/vagrant", disabled: true
+    	server.vm.provider "virtualbox" do |vb|
+      	  vb.memory = 1024
+          vb.cpus = 2
+    server.vm.hostname = "server"
+    	unless File.exist?(diskdir)
+          vb.customize ['createhd', '--filename', diskdir, '--variant', 'Fixed', '--size', 2 * 1024]
+        end
+          vb.customize ['storageattach', :id,  '--storagectl', 'IDE', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', diskdir]
+       # end
+        end
+    server.vm.provision "shell", path: "server.sh"
+        end
+
+  config.vm.define "client" do |client|
+    client.vm.synced_folder ".", "/vagrant", disabled: true
+    client.vm.provision "file", source: "./.vagrant/machines/server/virtualbox/private_key", destination: "/home/vagrant/private_key"
+    client.vm.provision "file", source: "./script.sh", destination: "/home/vagrant/script.sh"
+    client.vm.network "private_network", ip: "192.168.11.20"
+    client.vm.provider "virtualbox" do |vb|
+      vb.memory = 1024
+      vb.cpus = 2
+    end
+    client.vm.hostname = "client"
+    client.vm.provision "shell", path: "client.sh"
+    config.vm.provision "shell", inline: <<-SHELL
+            mkdir -p ~root/.ssh
+            cp ~vagrant/.ssh/auth* ~root/.ssh
+    SHELL
+
+
+  end
+end
