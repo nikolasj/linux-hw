@@ -1,0 +1,29 @@
+---
+- name: Setup log server
+  hosts: log
+  become: True
+  gather_facts: False
+  roles:
+    - role: add-entry-to-hosts
+      ip: 192.168.100.10
+      dns: web
+    - rsyslog-server
+    - audit-server
+- name: Setup web server with nginx
+  hosts: web
+  become: True
+  gather_facts: False
+  roles:
+    - epel
+    - nginx
+    - role: add-entry-to-hosts
+      ip: 192.168.100.11
+      dns: log
+    - role: nginx-remote-server
+      remote_server: log
+    - role: audit-directory
+      audit_dir: /etc/nginx
+      audit_key: nginx_conf
+    - role: audit-client
+      remote_server: log
+...
